@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hilltop International College Portal | Excellence, Integrity and Faith</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS3 (No Tailwind, No Bootstrap) -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body data-theme="light">
+
+    <!-- Top Announcement Bar -->
+    <div class="announcement-banner" id="announcementBanner">
+        <div class="banner-content">
+            <span class="badge-urgent"><i class="fas fa-bullhorn"></i> ADMISSION ALERT</span>
+            <span class="banner-text">2026/2027 Entrance Examination & Scholarship CBT scheduled for Saturday, March 28th!</span>
+        </div>
+        <button class="banner-close-btn" onclick="document.getElementById('announcementBanner').style.display='none'">&times;</button>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <!-- College Branding / Crest -->
+            <div class="brand-wrapper" onclick="switchPortal('public')">
+                <div class="brand-crest">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <h1 class="college-name">HILLTOP INTERNATIONAL COLLEGE</h1>
+                    <p class="college-motto">Excellence, Integrity and Faith &bull; Est. 1998 &bull; Lagos, Nigeria</p>
+                </div>
+            </div>
+
+            <!-- Header Navigation & Action Tools -->
+            <nav class="nav-menu">
+                <ul class="nav-links" id="publicNavLinks">
+                    <li><a href="#about" onclick="switchPortal('public')">About College</a></li>
+                    <li><a href="#academics" onclick="switchPortal('public')">Academics & WAEC</a></li>
+                    <li><a href="#admissions" onclick="openAdmissionModal()">Admissions</a></li>
+                    <li><a href="#facilities" onclick="switchPortal('public')">Campus Life</a></li>
+                    <li><a href="#contact" onclick="switchPortal('public')">Contact</a></li>
+                </ul>
+
+                <!-- Active Role Selector Pill -->
+                <div class="role-selector-wrapper">
+                    <div class="role-pill" onclick="openRoleModal()">
+                        <span class="role-avatar" id="currentRoleAvatar"><i class="fas fa-user-shield"></i></span>
+                        <div class="role-info">
+                            <span class="role-label" id="currentRoleLabel">Guest / Visitor</span>
+                            <span class="role-sublabel" id="currentRoleName">Explore College</span>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </div>
+
+                    <button class="icon-btn notification-btn" onclick="toggleNotificationDrawer()" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount">3</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN DYNAMIC CONTENT CONTAINER -->
+    <main id="appContent">
+        <!-- Will be dynamically populated by app.js based on selected portal: Public, Student, Parent, Teacher, Admin -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="main-footer" id="mainFooter">
+        <div class="footer-container">
+            <div class="footer-col brand-col">
+                <div class="brand-wrapper mb-3">
+                    <div class="brand-crest"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="brand-text">
+                        <h2 class="college-name-sm">HILLTOP INTERNATIONAL COLLEGE</h2>
+                        <p class="college-motto">Motto: Excellence, Integrity and Faith</p>
+                    </div>
+                </div>
+                <p class="footer-desc">A premier co-educational Junior and Senior Secondary Day & Boarding Institution recognized by WAEC, NECO, British Council (IGCSE), and Cambridge International Assessment.</p>
+                <div class="social-links">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h3 class="footer-title">Academic Wings</h3>
+                <ul class="footer-links">
+                    <li><a href="javascript:void(0)">Junior Secondary School (JSS 1 - 3)</a></li>
+                    <li><a href="javascript:void(0)">Senior Science & STEM Robotics</a></li>
+                    <li><a href="javascript:void(0)">Arts & Humanities Division</a></li>
+                    <li><a href="javascript:void(0)">Commercial & Business Studies</a></li>
+                    <li><a href="javascript:void(0)">WAEC, NECO & JAMB Prep Hub</a></li>
+                    <li><a href="javascript:void(0)">Cambridge IGCSE & SAT Centers</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3 class="footer-title">Portals & Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="javascript:void(0)" onclick="switchPortal('student')">Student Portal (Results & CBT)</a></li>
+                    <li><a href="javascript:void(0)" onclick="switchPortal('parent')">Parents & Fee Payment Desk</a></li>
+                    <li><a href="javascript:void(0)" onclick="switchPortal('teacher')">Staff & Grading System</a></li>
+                    <li><a href="javascript:void(0)" onclick="switchPortal('admin')">Principal & Admin Console</a></li>
+                    <li><a href="javascript:void(0)" onclick="openAdmissionModal()">Online Admission Form</a></li>
+                    <li><a href="javascript:void(0)">Boarding House & Hostels</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3 class="footer-title">Campus Contacts</h3>
+                <ul class="footer-contact">
+                    <li><i class="fas fa-map-marker-alt"></i> 14–18 Hilltop Crest Avenue, Lekki Phase 1, Victoria Island Corridor, Lagos State, Nigeria.</li>
+                    <li><i class="fas fa-phone-alt"></i> +234 (0) 803 456 7890, +234 (0) 1 234 5678</li>
+                    <li><i class="fas fa-envelope"></i> admissions@hilltopcollege.edu.ng</li>
+                    <li><i class="fas fa-clock"></i> Mon – Fri: 7:30 AM – 4:30 PM WAT</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 Hilltop International College. All Rights Reserved. Built with Modern Software Architecture.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Role Switcher Modal -->
+    <div class="modal-overlay" id="roleModal">
+        <div class="modal-card modal-md">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <i class="fas fa-user-circle modal-icon"></i>
+                    <div>
+                        <h3 class="modal-title">Select Portal Role</h3>
+                        <p class="modal-subtitle">Switch between different user roles to test portal features</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeRoleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="role-grid">
+                    <div class="role-card" onclick="selectRole('public')">
+                        <div class="role-icon-box bg-blue"><i class="fas fa-globe"></i></div>
+                        <div class="role-details">
+                            <h4>Public Homepage</h4>
+                            <p>About, Academics, News & Admission Showcase</p>
+                        </div>
+                    </div>
+
+                    <div class="role-card" onclick="selectRole('student')">
+                        <div class="role-icon-box bg-indigo"><i class="fas fa-user-graduate"></i></div>
+                        <div class="role-details">
+                            <h4>Student Portal</h4>
+                            <p>Chinedu Okafor (SSS 3) &bull; Results, CBT Exam Hall, Homework & Fees</p>
+                        </div>
+                    </div>
+
+                    <div class="role-card" onclick="selectRole('parent')">
+                        <div class="role-icon-box bg-teal"><i class="fas fa-users"></i></div>
+                        <div class="role-details">
+                            <h4>Parent Portal</h4>
+                            <p>Barr. Samuel Okafor &bull; Multi-Ward Tracker, Paystack Fees, Report Cards</p>
+                        </div>
+                    </div>
+
+                    <div class="role-card" onclick="selectRole('teacher')">
+                        <div class="role-icon-box bg-green"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="role-details">
+                            <h4>Teacher Portal</h4>
+                            <p>Mr. B. Adeyemi (HOD Sciences) &bull; Continuous Assessment 30% + Exam 70% Entry & Attendance</p>
+                        </div>
+                    </div>
+
+                    <div class="role-card" onclick="selectRole('admin')">
+                        <div class="role-icon-box bg-purple"><i class="fas fa-user-shield"></i></div>
+                        <div class="role-details">
+                            <h4>Principal & Admin Console</h4>
+                            <p>Admissions Desk, Revenue Logs, Hostels, Transport, Library & Broadcast</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Online Admission Application Modal -->
+    <div class="modal-overlay" id="admissionModal">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <i class="fas fa-file-signature modal-icon"></i>
+                    <div>
+                        <h3 class="modal-title">Online Admission Application Form</h3>
+                        <p class="modal-subtitle">2026/2027 Academic Session &bull; Junior (JSS 1-3) & Senior (SSS 1-3)</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeAdmissionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="admissionForm" onsubmit="handleAdmissionSubmit(event)">
+                    <h4 class="form-section-title"><i class="fas fa-user"></i> Section A: Candidate's Biodata</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Candidate Full Name (Surname First) *</label>
+                            <input type="text" class="form-control" id="adm_name" placeholder="e.g. ADEKUNLE, Chidera Emmanuel" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender *</label>
+                            <select class="form-control" id="adm_gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth *</label>
+                            <input type="date" class="form-control" id="adm_dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Entry Class *</label>
+                            <select class="form-control" id="adm_class" required>
+                                <option value="JSS 1">Junior Secondary 1 (JSS 1)</option>
+                                <option value="JSS 2">Junior Secondary 2 (JSS 2)</option>
+                                <option value="SSS 1 Science">Senior Secondary 1 (SSS 1 Science)</option>
+                                <option value="SSS 1 Arts">Senior Secondary 1 (SSS 1 Arts & Humanities)</option>
+                                <option value="SSS 1 Commercial">Senior Secondary 1 (SSS 1 Commercial)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>State of Origin *</label>
+                            <input type="text" class="form-control" id="adm_state" placeholder="e.g. Lagos, Anambra, Oyo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Previous Primary/Junior School Attended</label>
+                            <input type="text" class="form-control" id="adm_prev_school" placeholder="e.g. Corona Primary School, Lagos" required>
+                        </div>
+                    </div>
+
+                    <h4 class="form-section-title mt-4"><i class="fas fa-user-friends"></i> Section B: Parent / Guardian Information</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Parent / Guardian Full Name *</label>
+                            <input type="text" class="form-control" id="adm_parent_name" placeholder="e.g. Dr. / Engr. / Barr. Adeleke Adekunle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Parent Phone Number (WhatsApp Enabled) *</label>
+                            <input type="tel" class="form-control" id="adm_parent_phone" placeholder="+234 803 123 4567" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Parent Email Address *</label>
+                            <input type="email" class="form-control" id="adm_parent_email" placeholder="parent@gmail.com" required>
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Residential Address in Nigeria *</label>
+                            <input type="text" class="form-control" id="adm_address" placeholder="e.g. Plot 12, Admiralty Way, Lekki Phase 1, Lagos" required>
+                        </div>
+                    </div>
+
+                    <h4 class="form-section-title mt-4"><i class="fas fa-paperclip"></i> Section C: Required Credentials Upload</h4>
+                    <div class="upload-box-grid">
+                        <div class="upload-box">
+                            <i class="fas fa-camera"></i>
+                            <span>Passport Photograph (Red Background)</span>
+                            <small class="text-success"><i class="fas fa-check-circle"></i> Ready</small>
+                        </div>
+                        <div class="upload-box">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Birth Certificate / Age Declaration</span>
+                            <small class="text-success"><i class="fas fa-check-circle"></i> Ready</small>
+                        </div>
+                        <div class="upload-box">
+                            <i class="fas fa-award"></i>
+                            <span>Previous Term Report Card / Transcript</span>
+                            <small class="text-success"><i class="fas fa-check-circle"></i> Ready</small>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions mt-4">
+                        <button type="button" class="btn btn-outline" onclick="closeAdmissionModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Paystack / Flutterwave Payment Gateway Simulator -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-card modal-md paystack-card">
+            <div class="paystack-header">
+                <div class="paystack-brand">
+                    <span class="paystack-logo"><i class="fas fa-bolt"></i> paystack</span>
+                    <span class="secured-badge"><i class="fas fa-lock"></i> 256-bit SSL Secured</span>
+                </div>
+                <div class="paystack-amount-wrap">
+                    <span class="pay-amount-label">Pay Hilltop International College</span>
+                    <h2 class="pay-amount" id="payModalAmount">₦185,000.00</h2>
+                    <p class="pay-student" id="payModalTitle">2nd Term Tuition & Boarding Levy</p>
+                </div>
+            </div>
+
+            <div class="paystack-body">
+                <!-- Payment Channels Tabs -->
+                <div class="channel-tabs">
+                    <button class="channel-tab active" onclick="switchPayChannel('card')"><i class="fas fa-credit-card"></i> Pay with Card</button>
+                    <button class="channel-tab" onclick="switchPayChannel('transfer')"><i class="fas fa-university"></i> Bank Transfer</button>
+                    <button class="channel-tab" onclick="switchPayChannel('ussd')"><i class="fas fa-mobile-alt"></i> USSD</button>
+                </div>
+
+                <!-- Card Channel Form -->
+                <div class="channel-content" id="channelCard">
+                    <div class="form-group">
+                        <label>CARD NUMBER</label>
+                        <div class="input-icon-wrap">
+                            <input type="text" class="form-control" value="5399 4100 2841 8921" readonly>
+                            <i class="fab fa-cc-mastercard input-icon text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>EXPIRY DATE</label>
+                            <input type="text" class="form-control" value="08/28" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="password" class="form-control" value="***" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Transfer Channel -->
+                <div class="channel-content d-none" id="channelTransfer">
+                    <div class="transfer-box">
+                        <p class="transfer-inst">Transfer the exact amount to the dedicated Zenith Bank account below:</p>
+                        <div class="bank-details">
+                            <p><strong>Bank:</strong> Zenith Bank Plc</p>
+                            <p><strong>Account Name:</strong> Hilltop College / Paystack Checkout</p>
+                            <p><strong>Account Number:</strong> <span class="text-primary font-bold">1014889201</span> <button class="btn-copy" onclick="showToast('Account copied!')">Copy</button></p>
+                            <p><strong>Expires In:</strong> <span class="text-danger font-bold">29:45 mins</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USSD Channel -->
+                <div class="channel-content d-none" id="channelUssd">
+                    <div class="ussd-box">
+                        <p>Select your bank to generate instant USSD payment string:</p>
+                        <select class="form-control mb-2">
+                            <option>*737# GTBank</option>
+                            <option>*966# Zenith Bank</option>
+                            <option>*894# First Bank</option>
+                            <option>*901# Access Bank</option>
+                        </select>
+                        <p class="ussd-code">Dial: <strong>*737*000*4892#</strong> on your registered phone</p>
+                    </div>
+                </div>
+
+                <button class="btn btn-paystack-action" onclick="executePayment()">
+                    <i class="fas fa-lock"></i> Authorize & Complete Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Official Printable Terminal Report Card Sheet -->
+    <div class="modal-overlay" id="reportCardModal">
+        <div class="modal-card modal-lg print-card">
+            <div class="print-actions-bar">
+                <button class="btn btn-outline" onclick="closeReportCardModal()"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print Official Report Card</button>
+            </div>
+            
+            <!-- Printable Report Sheet Body -->
+            <div class="report-sheet" id="printableReportSheet">
+                <!-- Dynamically rendered by reports.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION DRAWER -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleNotificationDrawer()"></div>
+    <div class="notification-drawer" id="notificationDrawer">
+        <div class="drawer-header">
+            <h3><i class="fas fa-bell"></i> Notice Board & Alerts</h3>
+            <button class="btn-close-drawer" onclick="toggleNotificationDrawer()">&times;</button>
+        </div>
+        <div class="drawer-body" id="notificationList">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- SCRIPTS -->
+    <script src="./js/data.js"></script>
+    <script src="./js/cbt.js"></script>
+    <script src="./js/payment.js"></script>
+    <script src="./js/reports.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>

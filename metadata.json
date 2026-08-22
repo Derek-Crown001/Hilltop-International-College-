@@ -1,0 +1,6 @@
+{
+  "name": "Hilltop International College Portal",
+  "description": "Comprehensive Nigerian Junior & Senior Secondary School Management System featuring Student, Parent, Teacher, and Admin portals, fee payments, result computation, and CBT exams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
