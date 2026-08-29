@@ -33,13 +33,14 @@ fun TeacherPortalScreen(
     attendanceEntries: List<AttendanceEntry>,
     assignments: List<Assignment>,
     onUpdateScore: (reportId: String, subjectCode: String, ca1: Double, ca2: Double, test: Double, exam: Double) -> Unit,
+    onRegisterReportCard: (StudentReportCard) -> Unit = {},
+    onAddAttendanceStudent: (studentName: String, admissionNo: String, className: String) -> Unit = { _, _, _ -> },
     onToggleAttendance: (studentId: String) -> Unit,
     onCreateAssignment: (title: String, subject: String, targetClass: String, dueDate: String, desc: String, maxScore: Int) -> Unit,
     onShowToast: (String) -> Unit
 ) {
     var selectedTab by remember { mutableStateOf("scores") }
     var selectedClass by remember { mutableStateOf("SSS 3 Science A") }
-    var selectedSubject by remember { mutableStateOf("Mathematics") }
 
     // State for Score Entry Dialog
     var editingScoreInfo by remember { mutableStateOf<Pair<String, SubjectScore>?>(null) } // reportId to SubjectScore
@@ -47,6 +48,20 @@ fun TeacherPortalScreen(
     var editCa2 by remember { mutableStateOf("9.0") }
     var editTest by remember { mutableStateOf("9.0") }
     var editExam by remember { mutableStateOf("64.0") }
+
+    // State for Register Report Card Dialog
+    var showAddStudentReportDialog by remember { mutableStateOf(false) }
+    var newStudentName by remember { mutableStateOf("") }
+    var newAdmNo by remember { mutableStateOf("") }
+    var newClassName by remember { mutableStateOf("SSS 3 Science A") }
+    var newTerm by remember { mutableStateOf("2nd Term") }
+    var newSession by remember { mutableStateOf("2025/2026") }
+
+    // State for Add Attendance Student Dialog
+    var showAddAttendanceStudentDialog by remember { mutableStateOf(false) }
+    var attStudentName by remember { mutableStateOf("") }
+    var attAdmNo by remember { mutableStateOf("") }
+    var attClass by remember { mutableStateOf("SSS 3 Science A") }
 
     // State for Create Assignment Dialog
     var showCreateAsnDialog by remember { mutableStateOf(false) }
@@ -87,12 +102,12 @@ fun TeacherPortalScreen(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Mr. Babatunde Adeyemi",
+                        text = "Academic & Faculty Portal",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "HOD Science & Mathematics • Staff ID: HIC/TCH/012",
+                        text = "Grading, Attendance Roster & Assignments",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextMuted
                     )
@@ -114,9 +129,9 @@ fun TeacherPortalScreen(
             contentColor = NigerianGreen
         ) {
             listOf(
-                "scores" to "Score Entry (CA & Exam)",
-                "attendance" to "Daily Attendance",
-                "assignments" to "Manage Homework",
+                "scores" to "Scores & Report Cards (${reportCards.size})",
+                "attendance" to "Daily Attendance (${attendanceEntries.size})",
+                "assignments" to "Homework (${assignments.size})",
                 "analytics" to "Broadsheet Analytics"
             ).forEachIndexed { index, (key, label) ->
                 Tab(
@@ -150,96 +165,105 @@ fun TeacherPortalScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Text(
-                                    text = "Continuous Assessment & Exam Score Recording",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = HilltopPrimary
-                                )
-                                Text(
-                                    text = "Grading standard: 1st CA (10%) + 2nd CA (10%) + Mid-Term Test (10%) + Terminal Exam (70%) = 100%",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                Spacer(modifier = Modifier.height(10.dp))
-
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    FilterChip(
-                                        selected = selectedClass == "SSS 3 Science A",
-                                        onClick = { selectedClass = "SSS 3 Science A" },
-                                        label = { Text("SSS 3 Science A", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    FilterChip(
-                                        selected = selectedClass == "JSS 2 Gold",
-                                        onClick = { selectedClass = "JSS 2 Gold" },
-                                        label = { Text("JSS 2 Gold", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Continuous Assessment & Exam Scores",
+                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                            color = HilltopPrimary
+                                        )
+                                        Text(
+                                            text = "1st CA (10%) + 2nd CA (10%) + Test (10%) + Exam (70%)",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Button(
+                                        onClick = { showAddStudentReportDialog = true },
+                                        colors = ButtonDefaults.buttonColors(containerColor = NigerianGreen),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Register Student", fontSize = 11.sp)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (report != null) {
+                    if (reportCards.isEmpty()) {
                         item {
-                            Text(
-                                text = "Student: ${report.studentName} (${report.admissionNo})",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                            EmptyTeacherCard(
+                                title = "No Student Grade Records",
+                                subtitle = "Create student profiles and enter subject marks for continuous assessment and terminal examinations.",
+                                icon = Icons.Default.Grade,
+                                onAction = { showAddStudentReportDialog = true },
+                                actionText = "Register Student Report Card"
                             )
                         }
+                    } else {
+                        if (report != null) {
+                            item {
+                                Text(
+                                    text = "Student: ${report.studentName} (${report.admissionNo}) • ${report.className}",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
 
-                        items(report.scores) { score ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        editingScoreInfo = Pair(report.reportId, score)
-                                        editCa1 = score.ca1.toString()
-                                        editCa2 = score.ca2.toString()
-                                        editTest = score.testScore.toString()
-                                        editExam = score.examScore.toString()
-                                    },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(14.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                            items(report.scores) { score ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            editingScoreInfo = Pair(report.reportId, score)
+                                            editCa1 = score.ca1.toString()
+                                            editCa2 = score.ca2.toString()
+                                            editTest = score.testScore.toString()
+                                            editExam = score.examScore.toString()
+                                        },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    Column(modifier = Modifier.weight(1.5f)) {
-                                        Text(
-                                            text = score.subjectName,
-                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                                        )
-                                        Text(
-                                            text = "CA: ${(score.ca1 + score.ca2 + score.testScore).toInt()}/30 • Exam: ${score.examScore.toInt()}/70",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = TextMuted
-                                        )
-                                    }
-
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Column(horizontalAlignment = Alignment.End) {
+                                    Row(
+                                        modifier = Modifier.padding(14.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1.5f)) {
                                             Text(
-                                                text = "${String.format("%.0f", score.totalScore)}%",
-                                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = HilltopPrimary)
+                                                text = score.subjectName,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                                             )
                                             Text(
-                                                text = score.gradeRemark.grade,
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = NigerianGreen
-                                                )
+                                                text = "CA: ${(score.ca1 + score.ca2 + score.testScore).toInt()}/30 • Exam: ${score.examScore.toInt()}/70",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = TextMuted
                                             )
                                         }
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Icon(Icons.Default.Edit, contentDescription = "Edit Score", tint = HilltopPrimary, modifier = Modifier.size(18.dp))
+
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Column(horizontalAlignment = Alignment.End) {
+                                                Text(
+                                                    text = "${String.format("%.0f", score.totalScore)}%",
+                                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = HilltopPrimary)
+                                                )
+                                                Text(
+                                                    text = score.gradeRemark.grade,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = NigerianGreen
+                                                    )
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Icon(Icons.Default.Edit, contentDescription = "Edit Score", tint = HilltopPrimary, modifier = Modifier.size(18.dp))
+                                        }
                                     }
                                 }
                             }
@@ -260,9 +284,9 @@ fun TeacherPortalScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Class Register: SSS 3 Science A",
+                                            text = "Class Register & Roll Call",
                                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                             color = HilltopPrimary
                                         )
@@ -274,46 +298,60 @@ fun TeacherPortalScreen(
                                         )
                                     }
                                     Button(
-                                        onClick = { onShowToast("Attendance register synchronized!") },
+                                        onClick = { showAddAttendanceStudentDialog = true },
                                         shape = RoundedCornerShape(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = NigerianGreen)
                                     ) {
-                                        Text("Save Register")
+                                        Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Add Student", fontSize = 11.sp)
                                     }
                                 }
                             }
                         }
                     }
 
-                    items(attendanceEntries) { entry ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onToggleAttendance(entry.studentId) },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (entry.isPresent) Color(0xFFF0FDF4) else Color(0xFFFEF2F2)
+                    if (attendanceEntries.isEmpty()) {
+                        item {
+                            EmptyTeacherCard(
+                                title = "Class Attendance Roster Empty",
+                                subtitle = "Add students to the class roster to take attendance and record daily punctuality.",
+                                icon = Icons.Default.HowToReg,
+                                onAction = { showAddAttendanceStudentDialog = true },
+                                actionText = "Add Student to Roster"
                             )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        }
+                    } else {
+                        items(attendanceEntries) { entry ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onToggleAttendance(entry.studentId) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (entry.isPresent) Color(0xFFF0FDF4) else Color(0xFFFEF2F2)
+                                )
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = entry.studentName, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
-                                    Text(text = "${entry.admissionNo} • ${entry.remarks}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                                }
-                                Surface(
-                                    color = if (entry.isPresent) NigerianGreen else StatusError,
-                                    shape = RoundedCornerShape(6.dp)
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = if (entry.isPresent) "PRESENT" else "ABSENT",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = Color.White,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(text = entry.studentName, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                                        Text(text = "${entry.admissionNo} • ${entry.remarks.ifBlank { "Daily Attendance" }}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                                    }
+                                    Surface(
+                                        color = if (entry.isPresent) NigerianGreen else StatusError,
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Text(
+                                            text = if (entry.isPresent) "PRESENT" else "ABSENT",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -328,7 +366,7 @@ fun TeacherPortalScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Published Homework",
+                                text = "Published Homework (${assignments.size})",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Button(
@@ -339,36 +377,48 @@ fun TeacherPortalScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("New Assignment")
+                                Text("New Assignment", fontSize = 12.sp)
                             }
                         }
                     }
 
-                    items(assignments) { asn ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = asn.subject, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = HilltopPrimary)
-                                    Text(text = "Target: ${asn.targetClass}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = asn.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                                Text(text = asn.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = "Max Score: ${asn.maxScore} pts", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                                    Text(text = "Due: ${asn.dueDate}", style = MaterialTheme.typography.labelSmall, color = StatusWarning)
+                    if (assignments.isEmpty()) {
+                        item {
+                            EmptyTeacherCard(
+                                title = "No Homework Assignments Published",
+                                subtitle = "Create and dispatch homework exercises, reading tasks, and class projects.",
+                                icon = Icons.Default.Assignment,
+                                onAction = { showCreateAsnDialog = true },
+                                actionText = "Create New Assignment"
+                            )
+                        }
+                    } else {
+                        items(assignments) { asn ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = asn.subject, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = HilltopPrimary)
+                                        Text(text = "Target: ${asn.targetClass}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = asn.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                                    Text(text = asn.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = "Max Score: ${asn.maxScore} pts", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                                        Text(text = "Due: ${asn.dueDate}", style = MaterialTheme.typography.labelSmall, color = StatusWarning)
+                                    }
                                 }
                             }
                         }
@@ -384,46 +434,177 @@ fun TeacherPortalScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "Class Performance Summary (SSS 3 Science A)",
+                                    text = "Class Broadsheet & Performance Summary",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                     color = HilltopPrimary
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
 
+                                val totalStudents = reportCards.size
+                                val totalAttend = attendanceEntries.size
+                                val presentCount = attendanceEntries.count { it.isPresent }
+
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    TeacherAnalyticsBox(Modifier.weight(1f), "Class Average", "82.4%", NigerianGreen)
-                                    TeacherAnalyticsBox(Modifier.weight(1f), "Pass Rate", "100%", HilltopPrimary)
-                                    TeacherAnalyticsBox(Modifier.weight(1f), "Distinctions", "31 / 38", AcademicGold)
-                                }
-
-                                Spacer(modifier = Modifier.height(14.dp))
-
-                                Text(
-                                    text = "Subject Mean Score Comparison:",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                listOf(
-                                    "Mathematics" to 86.5,
-                                    "Physics" to 84.0,
-                                    "Chemistry" to 81.2,
-                                    "Further Mathematics" to 87.0
-                                ).forEach { (sub, mean) ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 3.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(text = sub, style = MaterialTheme.typography.bodySmall)
-                                        Text(text = "$mean%", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = HilltopPrimary)
-                                    }
+                                    TeacherAnalyticsBox(Modifier.weight(1f), "Registered Students", "$totalStudents", NigerianGreen)
+                                    TeacherAnalyticsBox(Modifier.weight(1f), "Roster Roll", "$totalAttend", HilltopPrimary)
+                                    TeacherAnalyticsBox(Modifier.weight(1f), "Attendance", if (totalAttend > 0) "${(presentCount * 100) / totalAttend}%" else "0%", AcademicGold)
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Register Student Report Dialog
+    if (showAddStudentReportDialog) {
+        Dialog(onDismissRequest = { showAddStudentReportDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        text = "Register Student & Grade Card",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = HilltopPrimary
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    OutlinedTextField(
+                        value = newStudentName,
+                        onValueChange = { newStudentName = it },
+                        label = { Text("Student Full Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(
+                            value = newAdmNo,
+                            onValueChange = { newAdmNo = it },
+                            label = { Text("Admission No") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = newClassName,
+                            onValueChange = { newClassName = it },
+                            label = { Text("Class") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { showAddStudentReportDialog = false }, modifier = Modifier.weight(1f)) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                if (newStudentName.isNotBlank()) {
+                                    val defaultScores = listOf(
+                                        SubjectScore("Mathematics", "MTH 301", 8.0, 8.5, 9.0, 60.0, "Good comprehension"),
+                                        SubjectScore("English Language", "ENG 301", 8.5, 9.0, 8.5, 58.0, "Great essays"),
+                                        SubjectScore("Physics", "PHY 301", 8.0, 8.0, 8.5, 55.0, "Solid practical skills"),
+                                        SubjectScore("Chemistry", "CHM 301", 8.5, 8.0, 8.0, 56.0, "Diligent student"),
+                                        SubjectScore("Biology", "BIO 301", 8.0, 8.5, 8.5, 57.0, "Active participant")
+                                    )
+                                    val newReport = StudentReportCard(
+                                        reportId = "REP-${(1000..9999).random()}",
+                                        studentId = "STU-${(100..999).random()}",
+                                        studentName = newStudentName,
+                                        admissionNo = newAdmNo.ifBlank { "HIC/2026/001" },
+                                        className = newClassName,
+                                        term = newTerm,
+                                        session = newSession,
+                                        scores = defaultScores,
+                                        classPosition = 1,
+                                        totalStudentsInClass = 1,
+                                        attendancePresent = 68,
+                                        attendanceTotalDays = 70,
+                                        classTeacherComment = "Hardworking and attentive scholar.",
+                                        principalComment = "Keep up the commendable effort.",
+                                        promotionStatus = "Good Standing"
+                                    )
+                                    onRegisterReportCard(newReport)
+                                    showAddStudentReportDialog = false
+                                    newStudentName = ""
+                                    newAdmNo = ""
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = NigerianGreen),
+                            modifier = Modifier.weight(1.5f)
+                        ) {
+                            Text("Register Student")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Add Attendance Student Dialog
+    if (showAddAttendanceStudentDialog) {
+        Dialog(onDismissRequest = { showAddAttendanceStudentDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        text = "Add Student to Attendance Roster",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = NigerianGreen
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    OutlinedTextField(
+                        value = attStudentName,
+                        onValueChange = { attStudentName = it },
+                        label = { Text("Student Full Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(
+                            value = attAdmNo,
+                            onValueChange = { attAdmNo = it },
+                            label = { Text("Admission No") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = attClass,
+                            onValueChange = { attClass = it },
+                            label = { Text("Class") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { showAddAttendanceStudentDialog = false }, modifier = Modifier.weight(1f)) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                if (attStudentName.isNotBlank()) {
+                                    onAddAttendanceStudent(attStudentName, attAdmNo.ifBlank { "HIC/2026/001" }, attClass)
+                                    showAddAttendanceStudentDialog = false
+                                    attStudentName = ""
+                                    attAdmNo = ""
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = NigerianGreen),
+                            modifier = Modifier.weight(1.5f)
+                        ) {
+                            Text("Add to Roster")
                         }
                     }
                 }
@@ -441,7 +622,7 @@ fun TeacherPortalScreen(
         Dialog(onDismissRequest = { editingScoreInfo = null }) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
@@ -493,7 +674,7 @@ fun TeacherPortalScreen(
 
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = AcademicBgLight,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Row(
@@ -540,7 +721,7 @@ fun TeacherPortalScreen(
         Dialog(onDismissRequest = { showCreateAsnDialog = false }) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
@@ -618,11 +799,66 @@ fun TeacherPortalScreen(
 private fun TeacherAnalyticsBox(modifier: Modifier = Modifier, label: String, value: String, color: Color) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = AcademicBgLight)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
     ) {
         Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = label, style = MaterialTheme.typography.labelSmall, color = TextMuted)
             Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = color)
+        }
+    }
+}
+
+@Composable
+private fun EmptyTeacherCard(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onAction: () -> Unit,
+    actionText: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(NigerianGreen.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = NigerianGreen, modifier = Modifier.size(28.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Button(
+                onClick = onAction,
+                colors = ButtonDefaults.buttonColors(containerColor = NigerianGreen),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(actionText)
+            }
         }
     }
 }

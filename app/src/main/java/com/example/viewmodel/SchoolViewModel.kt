@@ -46,7 +46,7 @@ class SchoolViewModel(
     val selectedTab: StateFlow<String> = _selectedTab.asStateFlow()
 
     // Active Child Selected in Parent Portal
-    private val _selectedChildId = MutableStateFlow("STU-0482") // Chinedu
+    private val _selectedChildId = MutableStateFlow("STU-001")
     val selectedChildId: StateFlow<String> = _selectedChildId.asStateFlow()
 
     // Active Report Card for Modal / Inspection
@@ -80,7 +80,7 @@ class SchoolViewModel(
             UserRole.GUEST -> "home"
             UserRole.STUDENT -> "dashboard"
             UserRole.PARENT -> "overview"
-            UserRole.TEACHER -> "classes"
+            UserRole.TEACHER -> "scores"
             UserRole.ADMIN -> "analytics"
         }
     }
@@ -184,7 +184,7 @@ class SchoolViewModel(
         val current = _cbtSession.value ?: return
         val result = repository.submitCbtExam(
             current.exam.examId,
-            "Chinedu Emmanuel Okafor",
+            "Enrolled Scholar",
             current.answersMap
         )
         _cbtSession.value = current.copy(
@@ -199,14 +199,41 @@ class SchoolViewModel(
         _cbtSession.value = null
     }
 
-    // Teacher actions
+    fun createCbtExam(exam: CbtExam) {
+        repository.createCbtExam(exam)
+        showToast("New CBT Exam '${exam.title}' published successfully!")
+    }
+
+    fun deleteCbtExam(examId: String) {
+        repository.deleteCbtExam(examId)
+        showToast("CBT Exam removed.")
+    }
+
+    // Teacher & Academic actions
     fun updateSubjectScore(reportId: String, subjectCode: String, ca1: Double, ca2: Double, test: Double, exam: Double) {
         repository.updateSubjectScore(reportId, subjectCode, ca1, ca2, test, exam)
         showToast("Score updated successfully for $subjectCode")
     }
 
+    fun createReportCard(report: StudentReportCard) {
+        repository.createReportCard(report)
+        showToast("Student report card registered for ${report.studentName}")
+    }
+
     fun toggleAttendance(studentId: String) {
         repository.toggleAttendance(studentId)
+    }
+
+    fun addAttendanceStudent(studentName: String, admissionNo: String, className: String) {
+        val entry = AttendanceEntry(
+            studentId = "STU-${(100..999).random()}",
+            studentName = studentName,
+            admissionNo = admissionNo,
+            isPresent = true,
+            remarks = "Present on time ($className)"
+        )
+        repository.addAttendanceEntry(entry)
+        showToast("Student $studentName added to attendance roster")
     }
 
     fun submitAssignment(assignmentId: String, solution: String) {
@@ -222,7 +249,7 @@ class SchoolViewModel(
     // Admission actions
     fun submitNewAdmission(app: AdmissionApplication) {
         repository.submitNewAdmission(app)
-        showToast("Application #${app.applicationNo} submitted successfully!")
+        showToast("Application #${app.applicationNo} registered successfully!")
     }
 
     fun updateAdmissionStatus(appNo: String, newStatus: String) {
@@ -230,10 +257,181 @@ class SchoolViewModel(
         showToast("Admission status updated to: $newStatus")
     }
 
-    // Announcement actions
+    fun deleteAdmission(appNo: String) {
+        repository.deleteAdmission(appNo)
+        showToast("Admission file removed")
+    }
+
+    // News & Announcement actions
+    fun addNewsArticle(title: String, category: String, author: String, summary: String, content: String) {
+        val article = NewsArticle(
+            id = "NEWS-${(100..999).random()}",
+            title = title,
+            category = category,
+            date = "Today",
+            author = author,
+            summary = summary,
+            fullContent = content
+        )
+        repository.addNewsArticle(article)
+        showToast("News bulletin '$title' published to website!")
+    }
+
+    fun deleteNewsArticle(id: String) {
+        repository.deleteNewsArticle(id)
+        showToast("News bulletin deleted.")
+    }
+
     fun broadcastAnnouncement(title: String, audience: String, message: String, isUrgent: Boolean) {
         repository.broadcastAnnouncement(title, audience, message, isUrgent)
         showToast("Announcement broadcasted to $audience")
+    }
+
+    fun deleteAnnouncement(id: String) {
+        repository.deleteAnnouncement(id)
+        showToast("Announcement deleted.")
+    }
+
+    // Invoices & Finance
+    fun createFeeInvoice(
+        studentName: String,
+        admissionNo: String,
+        className: String,
+        term: String,
+        session: String,
+        dueDate: String,
+        items: List<FeeItem>
+    ) {
+        val total = items.sumOf { it.amount }
+        val invoice = FeeInvoice(
+            invoiceId = "HIC-INV-2026-${(1000..9999).random()}",
+            studentId = admissionNo.ifBlank { "STU-${(100..999).random()}" },
+            studentName = studentName,
+            className = className,
+            title = "$term Tuition & Levies ($session)",
+            term = term,
+            session = session,
+            items = items,
+            totalAmount = total,
+            amountPaid = 0L,
+            dueDate = dueDate,
+            status = PaymentStatus.UNPAID
+        )
+        repository.createFeeInvoice(invoice)
+        showToast("Fee invoice issued for $studentName (₦${"%,d".format(total)})")
+    }
+
+    fun recordManualPayment(
+        invoiceId: String,
+        studentName: String,
+        admissionNo: String,
+        amountPaid: Long,
+        payerName: String,
+        channel: String
+    ) {
+        val receipt = PaymentReceipt(
+            receiptNumber = "HIC/REC/2026/${(1000..9999).random()}",
+            transactionRef = "MAN_TXN_${System.currentTimeMillis().toString().takeLast(8)}",
+            invoiceId = invoiceId,
+            studentName = studentName,
+            admissionNo = admissionNo,
+            amountPaid = amountPaid,
+            paymentDate = "Today",
+            paymentGateway = "Bank Transfer / Cash Desk",
+            channel = channel,
+            payerName = payerName,
+            status = "Successful"
+        )
+        repository.recordPaymentReceipt(receipt)
+        showToast("Manual receipt generated for $studentName (₦${"%,d".format(amountPaid)})")
+    }
+
+    // Hostel Management
+    fun addHostelRoom(roomNumber: String, hallName: String, capacity: Int, floor: String, prefectName: String) {
+        val room = HostelRoom(
+            roomNumber = roomNumber,
+            hallName = hallName,
+            capacity = capacity,
+            occupied = 0,
+            floor = floor,
+            prefectName = prefectName
+        )
+        repository.addHostelRoom(room)
+        showToast("Hostel room $roomNumber added to $hallName")
+    }
+
+    fun deleteHostelRoom(roomNumber: String) {
+        repository.deleteHostelRoom(roomNumber)
+        showToast("Hostel room removed.")
+    }
+
+    // Transport Management
+    fun addTransportRoute(
+        routeCode: String,
+        routeName: String,
+        busNumber: String,
+        driverName: String,
+        driverPhone: String,
+        pickupPoints: List<String>,
+        departureTime: String,
+        feePerTerm: Long
+    ) {
+        val route = TransportRoute(
+            routeCode = routeCode,
+            routeName = routeName,
+            busNumber = busNumber,
+            driverName = driverName,
+            driverPhone = driverPhone,
+            pickupPoints = pickupPoints,
+            departureTime = departureTime,
+            feePerTerm = feePerTerm
+        )
+        repository.addTransportRoute(route)
+        showToast("Bus route $routeCode ($routeName) created successfully")
+    }
+
+    fun deleteTransportRoute(routeCode: String) {
+        repository.deleteTransportRoute(routeCode)
+        showToast("Transport route removed.")
+    }
+
+    // Library Management
+    fun addLibraryBook(
+        title: String,
+        author: String,
+        isbn: String,
+        category: String,
+        shelfLocation: String,
+        totalCopies: Int
+    ) {
+        val book = LibraryBook(
+            id = "BK-${(100..999).random()}",
+            title = title,
+            author = author,
+            isbn = isbn,
+            category = category,
+            shelfLocation = shelfLocation,
+            totalCopies = totalCopies,
+            availableCopies = totalCopies
+        )
+        repository.addLibraryBook(book)
+        showToast("Library title '$title' added to inventory")
+    }
+
+    fun deleteLibraryBook(bookId: String) {
+        repository.deleteLibraryBook(bookId)
+        showToast("Book title removed.")
+    }
+
+    // Clear and Sample Data
+    fun clearAllLogs() {
+        repository.clearAllLogs()
+        showToast("All logs and records have been cleared.")
+    }
+
+    fun loadSampleTemplateData() {
+        repository.loadSampleTemplateData()
+        showToast("Sample templates loaded.")
     }
 
     fun toggleNotificationsSheet(show: Boolean) {

@@ -7,9 +7,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import com.example.ai.GeminiAiViewModel
+import com.example.ai.GeminiChatModal
+import com.example.ai.GeminiLiveVoiceDialog
 import com.example.model.*
 import com.example.ui.admin.AdminPortalScreen
 import com.example.ui.admission.AdmissionFormDialog
@@ -24,20 +35,24 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel: SchoolViewModel by viewModels()
+    private val aiViewModel: GeminiAiViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             HilltopCollegeTheme {
-                SchoolApp(viewModel)
+                SchoolApp(viewModel, aiViewModel)
             }
         }
     }
 }
 
 @Composable
-fun SchoolApp(viewModel: SchoolViewModel) {
+fun SchoolApp(
+    viewModel: SchoolViewModel,
+    aiViewModel: GeminiAiViewModel
+) {
     val currentRole by viewModel.currentRole.collectAsState()
     val studentReportCards by viewModel.studentReportCards.collectAsState()
     val cbtExams by viewModel.cbtExams.collectAsState()
@@ -63,6 +78,10 @@ fun SchoolApp(viewModel: SchoolViewModel) {
     val toastMessage by viewModel.toastMessage.collectAsState()
     var showAdmissionForm by remember { mutableStateOf(false) }
 
+    // Gemini AI Modals state
+    var showAiChatModal by remember { mutableStateOf(false) }
+    val isVoiceModalOpen by aiViewModel.isVoiceModalOpen.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -84,7 +103,26 @@ fun SchoolApp(viewModel: SchoolViewModel) {
                 currentRole = currentRole,
                 onRoleSelected = { viewModel.setRole(it) },
                 onNotificationClick = { viewModel.toggleNotificationsSheet(true) },
+                onAiChatClick = { showAiChatModal = true },
+                onVoiceClick = { aiViewModel.openVoiceModal() },
                 announcementsCount = announcements.size
+            )
+        },
+        floatingActionButton = {
+            // Floating Gemini AI Assistant Button
+            ExtendedFloatingActionButton(
+                onClick = { showAiChatModal = true },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = "Hilltop Gemini AI"
+                    )
+                },
+                text = { Text("Ask Gemini AI") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape,
+                modifier = Modifier.testTag("gemini_ai_floating_button")
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -154,6 +192,10 @@ fun SchoolApp(viewModel: SchoolViewModel) {
                             onUpdateScore = { reportId, subCode, ca1, ca2, test, exam ->
                                 viewModel.updateSubjectScore(reportId, subCode, ca1, ca2, test, exam)
                             },
+                            onRegisterReportCard = { viewModel.createReportCard(it) },
+                            onAddAttendanceStudent = { name, adm, cls ->
+                                viewModel.addAttendanceStudent(name, adm, cls)
+                            },
                             onToggleAttendance = { viewModel.toggleAttendance(it) },
                             onCreateAssignment = { title, sub, targetClass, due, desc, maxScore ->
                                 viewModel.createAssignment(title, sub, targetClass, due, desc, maxScore)
@@ -172,9 +214,34 @@ fun SchoolApp(viewModel: SchoolViewModel) {
                             onUpdateAdmissionStatus = { appNo, newStatus ->
                                 viewModel.updateAdmissionStatus(appNo, newStatus)
                             },
+                            onDeleteAdmission = { viewModel.deleteAdmission(it) },
+                            onSubmitNewAdmission = { viewModel.submitNewAdmission(it) },
                             onBroadcastAnnouncement = { title, aud, msg, urgent ->
                                 viewModel.broadcastAnnouncement(title, aud, msg, urgent)
                             },
+                            onAddNewsArticle = { title, cat, author, sum, content ->
+                                viewModel.addNewsArticle(title, cat, author, sum, content)
+                            },
+                            onCreateFeeInvoice = { studentName, admNo, cls, term, session, due, items ->
+                                viewModel.createFeeInvoice(studentName, admNo, cls, term, session, due, items)
+                            },
+                            onRecordManualPayment = { invId, sName, admNo, amt, pName, chan ->
+                                viewModel.recordManualPayment(invId, sName, admNo, amt, pName, chan)
+                            },
+                            onAddHostelRoom = { roomNo, hall, cap, floor, pref ->
+                                viewModel.addHostelRoom(roomNo, hall, cap, floor, pref)
+                            },
+                            onDeleteHostelRoom = { viewModel.deleteHostelRoom(it) },
+                            onAddTransportRoute = { code, name, busNo, driver, phone, points, dep, fee ->
+                                viewModel.addTransportRoute(code, name, busNo, driver, phone, points, dep, fee)
+                            },
+                            onDeleteTransportRoute = { viewModel.deleteTransportRoute(it) },
+                            onAddLibraryBook = { title, auth, isbn, cat, shelf, copies ->
+                                viewModel.addLibraryBook(title, auth, isbn, cat, shelf, copies)
+                            },
+                            onDeleteLibraryBook = { viewModel.deleteLibraryBook(it) },
+                            onClearAllLogs = { viewModel.clearAllLogs() },
+                            onLoadSampleData = { viewModel.loadSampleTemplateData() },
                             onShowToast = showToast
                         )
                     }
@@ -228,4 +295,21 @@ fun SchoolApp(viewModel: SchoolViewModel) {
             }
         )
     }
+
+    // Gemini AI Chat Modal
+    if (showAiChatModal) {
+        GeminiChatModal(
+            aiViewModel = aiViewModel,
+            onDismiss = { showAiChatModal = false }
+        )
+    }
+
+    // Gemini Live Voice Mode Dialog
+    if (isVoiceModalOpen) {
+        GeminiLiveVoiceDialog(
+            aiViewModel = aiViewModel,
+            onDismiss = { aiViewModel.closeVoiceModal() }
+        )
+    }
 }
+

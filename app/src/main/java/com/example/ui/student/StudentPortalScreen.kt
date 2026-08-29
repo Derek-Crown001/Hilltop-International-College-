@@ -157,17 +157,17 @@ fun StudentPortalScreen(
                                     Spacer(modifier = Modifier.width(14.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Chinedu Emmanuel Okafor",
+                                            text = studentReport?.studentName ?: "Enrolled Student Portal",
                                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                             color = Color.White
                                         )
                                         Text(
-                                            text = "Adm No: HIC/2023/0482 • SSS 3 Science A",
+                                            text = if (studentReport != null) "Adm No: ${studentReport.admissionNo} • ${studentReport.className}" else "Hilltop International College Scholar",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = Color.White.copy(alpha = 0.85f)
                                         )
                                         Text(
-                                            text = "House: Nelson Mandela (Senior Prefect)",
+                                            text = "Academic Session: 2025/2026",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = AcademicGold
                                         )
@@ -186,29 +186,55 @@ fun StudentPortalScreen(
                             StudentMetricBox(
                                 modifier = Modifier.weight(1f),
                                 label = "Term Average",
-                                value = if (studentReport != null) "${String.format("%.1f", studentReport.averageScore)}%" else "87.2%",
-                                subtext = "Distinction Grade",
+                                value = if (studentReport != null) "${String.format("%.1f", studentReport.averageScore)}%" else "—",
+                                subtext = if (studentReport != null) studentReport.promotionStatus else "No Grades Yet",
                                 color = NigerianGreen
                             )
                             StudentMetricBox(
                                 modifier = Modifier.weight(1f),
                                 label = "Class Position",
-                                value = if (studentReport != null) "${studentReport.classPosition}nd / ${studentReport.totalStudentsInClass}" else "2nd / 38",
-                                subtext = "Top 5% Cohort",
+                                value = if (studentReport != null) "${studentReport.classPosition} / ${studentReport.totalStudentsInClass}" else "—",
+                                subtext = if (studentReport != null) "Cohort Rank" else "Pending",
                                 color = HilltopPrimary
                             )
                             StudentMetricBox(
                                 modifier = Modifier.weight(1f),
                                 label = "Attendance",
-                                value = if (studentReport != null) "${String.format("%.1f", (studentReport.attendancePresent.toDouble() / studentReport.attendanceTotalDays) * 100)}%" else "97.1%",
-                                subtext = "68 / 70 Days",
+                                value = if (studentReport != null && studentReport.attendanceTotalDays > 0) "${String.format("%.1f", (studentReport.attendancePresent.toDouble() / studentReport.attendanceTotalDays) * 100)}%" else "—",
+                                subtext = if (studentReport != null) "${studentReport.attendancePresent}/${studentReport.attendanceTotalDays} Days" else "Active",
                                 color = StatusInfo
                             )
                         }
                     }
 
                     // Latest Term Result Preview Card
-                    if (studentReport != null) {
+                    if (studentReport == null) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(Icons.Default.School, contentDescription = null, tint = HilltopPrimary, modifier = Modifier.size(32.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "No Term Results Released Yet",
+                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Text(
+                                        text = "Results and broadsheet remarks will appear here when registered by your class teacher.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextMuted,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    } else {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),

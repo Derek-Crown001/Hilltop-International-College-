@@ -478,11 +478,39 @@ fun PublicSiteScreen(
                         )
                     }
 
-                    items(newsArticles) { article ->
-                        NewsCardItem(
-                            article = article,
-                            onClick = { viewingArticle = article }
-                        )
+                    if (newsArticles.isEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(Icons.Default.Article, contentDescription = null, tint = HilltopPrimary, modifier = Modifier.size(32.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "No News Bulletins Published Yet",
+                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Text(
+                                        text = "School news, term announcements, and press releases published by the administration will appear here.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextMuted,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        items(newsArticles) { article ->
+                            NewsCardItem(
+                                article = article,
+                                onClick = { viewingArticle = article }
+                            )
+                        }
                     }
                 }
 

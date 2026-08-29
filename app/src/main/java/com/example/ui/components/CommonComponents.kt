@@ -37,6 +37,8 @@ fun CollegeTopBar(
     currentRole: UserRole,
     onRoleSelected: (UserRole) -> Unit,
     onNotificationClick: () -> Unit,
+    onAiChatClick: () -> Unit = {},
+    onVoiceClick: () -> Unit = {},
     announcementsCount: Int = 3
 ) {
     var showRoleMenu by remember { mutableStateOf(false) }
@@ -105,6 +107,30 @@ fun CollegeTopBar(
             }
         },
         actions = {
+            // Gemini AI Chat Button
+            IconButton(
+                onClick = onAiChatClick,
+                modifier = Modifier.testTag("gemini_ai_topbar_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = "Gemini AI Tutor & Assistant",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // Gemini Voice Mode Button
+            IconButton(
+                onClick = onVoiceClick,
+                modifier = Modifier.testTag("gemini_voice_topbar_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = "Gemini Voice Mode",
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+            }
+
             // Portal Switcher Quick Button
             FilledTonalButton(
                 onClick = { showRoleMenu = true },

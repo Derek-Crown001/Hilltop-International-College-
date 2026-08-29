@@ -74,33 +74,29 @@ fun ParentPortalScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
-                FilterChip(
-                    selected = selectedChildId == "STU-0482",
-                    onClick = { onSelectChild("STU-0482") },
-                    label = { Text("Chinedu (SSS 3)", fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                if (reportCards.isEmpty()) {
+                    Text(
+                        text = "No enrolled ward records found",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                } else {
+                    reportCards.forEach { r ->
+                        FilterChip(
+                            selected = selectedChildId == r.studentId || currentReport?.studentId == r.studentId,
+                            onClick = { onSelectChild(r.studentId) },
+                            label = { Text("${r.studentName.split(" ").firstOrNull() ?: "Ward"} (${r.className.take(5)})", fontSize = 12.sp) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.School,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         )
+                        Spacer(modifier = Modifier.width(6.dp))
                     }
-                )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                FilterChip(
-                    selected = selectedChildId == "STU-0621",
-                    onClick = { onSelectChild("STU-0621") },
-                    label = { Text("Amina (JSS 2)", fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
+                }
             }
         }
 
